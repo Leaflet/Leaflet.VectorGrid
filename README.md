@@ -76,6 +76,8 @@ var url = 'https://{s}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/{z}/{x}/{y}.
 var layer = L.vectorGrid.protobuf(url, options);
 ```
 
+`L.VectorGrid.Protobuf` can accept a `L.latLngBounds` option `bbox`, which defines the boundary box of the layer. If the `bbox` is specified, it won't send tile request to the server for the area outside the boundary box.
+
 ### Styling
 
 Vector tiles have a concept of "layer" different from the Leaflet concept of "layer".
@@ -183,4 +185,3 @@ can do whatever you want with this stuff. If we meet some day, and you think
 this stuff is worth it, you can buy me a beer in return.
 
 ----------------------------------------------------------------------------
-
