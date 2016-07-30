@@ -20,38 +20,54 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 
 	_getVectorTilePromise: function(coords) {
-		var tileUrl = L.Util.template(this._url, L.extend({
-			s: this._getSubdomain(coords),
-			x: coords.x,
-			y: coords.y,
-			z: coords.z
-// 			z: this._getZoomForUrl()	/// TODO: Maybe replicate TileLayer's maxNativeZoom
-		}, this.options));
 
-		return fetch(tileUrl).then(function(response){
+    var promise;
 
-			if (!response.ok) {
-				return {layers:[]};
-			}
+    if (this.options.bbox) {
+      var bboxCoords = this._merc.bbox(coords.x, coords.y, coords.z);
+      var tileBbox = L.latLngBounds(L.latLng(bboxCoords[1], bboxCoords[0]), L.latLng(bboxCoords[3], bboxCoords[2]));
 
-			return response.blob().then( function (blob) {
-// 				console.log(blob);
+      if (!this.options.bbox.overlaps(tileBbox)) {
+        promise = Promise.resolve({ layers:[] });
+      }
+    }
 
-				var reader = new FileReader();
-				return new Promise(function(resolve){
-					reader.addEventListener("loadend", function() {
-						// reader.result contains the contents of blob as a typed array
+    if (!promise) {
+      var tileUrl = L.Util.template(this._url, L.extend({
+  			s: this._getSubdomain(coords),
+  			x: coords.x,
+  			y: coords.y,
+  			z: coords.z
+  // 			z: this._getZoomForUrl()	/// TODO: Maybe replicate TileLayer's maxNativeZoom
+  		}, this.options));
 
-						// blob.type === 'application/x-protobuf'
-						var pbf = new Pbf( reader.result );
-// 						console.log(pbf);
-						return resolve(new vectorTile.VectorTile( pbf ));
+  		promise = fetch(tileUrl).then(function(response){
 
-					});
-					reader.readAsArrayBuffer(blob);
-				});
-			});
-		}).then(function(json){
+  			if (!response.ok) {
+  				return {layers:[]};
+  			}
+
+  			return response.blob().then( function (blob) {
+  // 				console.log(blob);
+
+  				var reader = new FileReader();
+  				return new Promise(function(resolve){
+  					reader.addEventListener("loadend", function() {
+  						// reader.result contains the contents of blob as a typed array
+
+  						// blob.type === 'application/x-protobuf'
+  						var pbf = new Pbf( reader.result );
+  // 						console.log(pbf);
+  						return resolve(new vectorTile.VectorTile( pbf ));
+
+  					});
+  					reader.readAsArrayBuffer(blob);
+  				});
+  			});
+  		})
+    }
+
+    return promise.then(function(json){
 
 // 			console.log('Vector tile:', json.layers);
 // 			console.log('Vector tile water:', json.layers.water);	// Instance of VectorTileLayer
@@ -78,4 +94,3 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 L.vectorGrid.protobuf = function (url, options) {
 	return new L.VectorGrid.Protobuf(url, options);
 };
-
