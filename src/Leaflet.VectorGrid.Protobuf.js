@@ -8,6 +8,8 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	options: {
 		subdomains: 'abc',	// Like L.TileLayer
+		zoomOffset: 0, // Like L.TileLayer
+		maxNativeZoom: null // Like L.TileLayer
 	},
 
 
@@ -21,15 +23,8 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
 
-
 	_getVectorTilePromise: function(coords) {
-		var tileUrl = L.Util.template(this._url, L.extend({
-			s: this._getSubdomain(coords),
-			x: coords.x,
-			y: coords.y,
-			z: coords.z
-// 			z: this._getZoomForUrl()	/// TODO: Maybe replicate TileLayer's maxNativeZoom
-		}, this.options));
+		var tileUrl = this._getTileUrl(coords);
 
 		return fetch(tileUrl).then(function(response){
 
@@ -74,6 +69,28 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 			return json;
 		});
+	},
+
+	_getTileUrl: function (coords) {
+		return L.Util.template(this._url, L.extend({
+			s: this._getSubdomain(coords),
+			x: coords.x,
+			y: coords.y,
+			z: this._getZoomForUrl(coords.z)
+		}, this.options));
+	},
+
+	_getZoomForUrl: function (zoom) {
+
+		var options = this.options;
+
+		if (options.zoomReverse) {
+			zoom = options.maxZoom - zoom;
+		}
+
+		zoom += options.zoomOffset;
+
+		return options.maxNativeZoom !== null ? Math.min(zoom, options.maxNativeZoom) : zoom;
 	}
 });
 
@@ -81,4 +98,3 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 L.vectorGrid.protobuf = function (url, options) {
 	return new L.VectorGrid.Protobuf(url, options);
 };
-
