@@ -8,6 +8,8 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	options: {
 		subdomains: 'abc',	// Like L.TileLayer
+		zoomOffset: 0,
+		maxNativeZoom: null
 	},
 
 
@@ -21,14 +23,16 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
 
+	_getZoomForUrl: L.TileLayer.prototype._getZoomForUrl,
+
+	getTileSize: L.TileLayer.prototype.getTileSize,
 
 	_getVectorTilePromise: function(coords) {
 		var tileUrl = L.Util.template(this._url, L.extend({
 			s: this._getSubdomain(coords),
 			x: coords.x,
 			y: coords.y,
-			z: coords.z
-// 			z: this._getZoomForUrl()	/// TODO: Maybe replicate TileLayer's maxNativeZoom
+			z: this._getZoomForUrl()
 		}, this.options));
 
 		return fetch(tileUrl).then(function(response){
