@@ -231,7 +231,7 @@ var PointLayer = L.CircleMarker.extend({
 
 	render: function(renderer, style) {
 		FeatureLayer.prototype.render.call(this, renderer, style);
-		this._radius = style.radius;
+		this._radius = style.radius || L.CircleMarker.prototype.options.radius;
 		this._updatePath();
 	},
 
