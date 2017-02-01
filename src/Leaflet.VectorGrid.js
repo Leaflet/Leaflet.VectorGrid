@@ -5,6 +5,7 @@ L.VectorGrid = L.GridLayer.extend({
 	options: {
 		rendererFactory: L.svg.tile,
 		vectorTileLayerStyles: {},
+		pointFeatureHooks: [],
 		interactive: false
 	},
 
@@ -43,6 +44,8 @@ L.VectorGrid = L.GridLayer.extend({
 				var layerStyle = this.options.vectorTileLayerStyles[ layerName ] ||
 				L.Path.prototype.options;
 
+				const pointFeatureHook = this.options.pointFeatureHooks[ layerName ]
+
 				for (var i in layer.features) {
 					var feat = layer.features[i];
 					var id;
@@ -58,6 +61,21 @@ L.VectorGrid = L.GridLayer.extend({
 								styleOptions = styleOverride;
 							}
 						}
+					}
+
+					// The user asked to be notified if point type features added to the current vt layer
+					if (pointFeatureHook && feat.type === 1) {
+						var pointCoord = feat.geometry[0];
+						var offset = coords.scaleBy(tileSize);
+						var point;
+						if (typeof pointCoord[0] === 'object' && 'x' in pointCoord[0]) {
+							// Protobuf vector tiles return [{x: , y:}]
+							point = L.point(offset.x + (pointCoord[0].x * pxPerExtent), offset.y + (pointCoord[0].y * pxPerExtent));
+						} else {
+							// Geojson-vt returns [,]
+							point = L.point(offset.x + (pointCoord[0] * pxPerExtent), offset.y + (pointCoord[1] * pxPerExtent));
+						}
+						var userDefinedLayer = pointFeatureHook(feat.properties, coords, point)
 					}
 
 					if (styleOptions instanceof Function) {

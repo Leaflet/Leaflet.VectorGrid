@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet Map Panes Example</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+	<script src="http://localhost:4567/Leaflet.VectorGrid.bundled.js"></script>
+</head>
+<body style='margin:0'>
+	<div id="map" style="width: 100vw; height: 100vh"></div>
+
+	<script>
+
+		var map = L.map('map');
+
+		var url = 'https://{s}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw';
+
+		// Keep references of the markers created on a tile so that they can be
+		// removed when the tile is unloaded
+		function tileCoordsToKey(coords) {
+      return coords.x + ':' + coords.y + ':' + coords.z;
+    }
+		var markersCache = {}
+		function setMarkerToCache(tileCoords, marker) {
+			var tileKey = tileCoordsToKey(tileCoords);
+			markersCache[tileKey] = markersCache[tileKey] || [];
+			markersCache[tileKey].push(marker);
+		}
+		function clearTileMarkers(tileCoords) {
+			var tileKey = tileCoordsToKey(tileCoords);
+			var markers = markersCache[tileKey]
+			if (!markers) {
+				return;
+			}
+			for(var i = 0; i < markers.length; i++) {
+				map.removeLayer(markers[i]);
+			}
+			delete markersCache[tileKey];
+		}
+
+		var vectorTileOptions = {
+			rendererFactory: L.canvas.tile,
+			attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://www.mapbox.com/about/maps/">MapBox</a>',
+			pointFeatureHooks: {
+				place_label: function(properties, tileCoords, point) {
+					if(properties.localrank > 60) {
+						marker = new L.Marker(map.unproject(point));
+						marker.bindTooltip(properties.name).openTooltip();
+						map.addLayer(marker);
+						setMarkerToCache(tileCoords, marker);
+					}
+				}
+			},
+			vectorTileLayerStyles: {
+
+				water: {
+					weight: 0,
+					fillColor: '#9bc2c4',
+					fillOpacity: 1,
+					fill: true,
+					stroke: false
+				},
+
+				admin: [],
+				state_label: [],
+				country_label: [],
+				marine_label: [],
+				state_label: [],
+				place_label: function(properties) {
+					if(properties.localrank > 60) {
+						return {};
+					} else {
+						return [];
+					}
+				},
+				waterway_label: [],
+				landuse: [],
+				landuse_overlay: [],
+				road: [],
+				poi_label: [],
+				waterway: [],
+				aeroway: [],
+				tunnel: [],
+				bridge: [],
+				barrier_line: [],
+				building: [],
+				road_label: [],
+				housenum_label: [],
+
+			}
+		};
+
+		var pbfLayer = L.vectorGrid.protobuf(url, vectorTileOptions).addTo(map);
+		pbfLayer.on('tileunload', function(e) {
+			clearTileMarkers(e.coords);
+		})
+
+		map.setView({ lat: 47.040182144806664, lng: 9.667968750000002 }, 6);
+
+
+	</script>
+</body>
+</html>
