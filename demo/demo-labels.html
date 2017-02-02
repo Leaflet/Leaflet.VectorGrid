@@ -45,14 +45,13 @@
 		var vectorTileOptions = {
 			rendererFactory: L.canvas.tile,
 			attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://www.mapbox.com/about/maps/">MapBox</a>',
-			pointFeatureHooks: {
-				place_label: function(properties, tileCoords, point) {
-					if(properties.localrank > 60) {
-						marker = new L.Marker(map.unproject(point));
-						marker.bindTooltip(properties.name).openTooltip();
-						map.addLayer(marker);
-						setMarkerToCache(tileCoords, marker);
-					}
+			onEachFeature: function(feature, featureLayer, vtLayer, tileCoords) {
+				if(vtLayer.name === 'place_label' && feature.properties.localrank > 60) {
+					var latlng = this.vtGeometryToLatLng(feature.geometry[0], vtLayer, tileCoords)
+					marker = new L.Marker(latlng);
+					marker.bindTooltip(feature.properties.name).openTooltip();
+					map.addLayer(marker);
+					setMarkerToCache(tileCoords, marker);
 				}
 			},
 			vectorTileLayerStyles: {

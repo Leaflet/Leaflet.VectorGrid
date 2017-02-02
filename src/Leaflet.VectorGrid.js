@@ -5,7 +5,7 @@ L.VectorGrid = L.GridLayer.extend({
 	options: {
 		rendererFactory: L.svg.tile,
 		vectorTileLayerStyles: {},
-		pointFeatureHooks: [],
+		onEachFeature: null,
 		interactive: false
 	},
 
@@ -23,6 +23,7 @@ L.VectorGrid = L.GridLayer.extend({
 
 	createTile: function(coords, done) {
 		var storeFeatures = this.options.getFeatureId;
+		var onEachFeature = this.options.onEachFeature;
 
 		var tileSize = this.getTileSize();
 		var renderer = this.options.rendererFactory(coords, tileSize, this.options);
@@ -44,8 +45,6 @@ L.VectorGrid = L.GridLayer.extend({
 				var layerStyle = this.options.vectorTileLayerStyles[ layerName ] ||
 				L.Path.prototype.options;
 
-				const pointFeatureHook = this.options.pointFeatureHooks[ layerName ]
-
 				for (var i in layer.features) {
 					var feat = layer.features[i];
 					var id;
@@ -63,21 +62,6 @@ L.VectorGrid = L.GridLayer.extend({
 						}
 					}
 
-					// The user asked to be notified if point type features added to the current vt layer
-					if (pointFeatureHook && feat.type === 1) {
-						var pointCoord = feat.geometry[0];
-						var offset = coords.scaleBy(tileSize);
-						var point;
-						if (typeof pointCoord[0] === 'object' && 'x' in pointCoord[0]) {
-							// Protobuf vector tiles return [{x: , y:}]
-							point = L.point(offset.x + (pointCoord[0].x * pxPerExtent), offset.y + (pointCoord[0].y * pxPerExtent));
-						} else {
-							// Geojson-vt returns [,]
-							point = L.point(offset.x + (pointCoord[0] * pxPerExtent), offset.y + (pointCoord[1] * pxPerExtent));
-						}
-						var userDefinedLayer = pointFeatureHook(feat.properties, coords, point)
-					}
-
 					if (styleOptions instanceof Function) {
 						styleOptions = styleOptions(feat.properties, coords.z);
 					}
@@ -87,10 +71,17 @@ L.VectorGrid = L.GridLayer.extend({
 					}
 
 					if (!styleOptions.length) {
+						if (onEachFeature) {
+							onEachFeature.call(this, feat, null, layer, coords);
+						}
 						continue;
 					}
 
 					var featureLayer = this._createLayer(feat, pxPerExtent);
+
+					if (onEachFeature) {
+						onEachFeature.call(this, feat, null, layer, coords);
+					}
 
 					for (var j in styleOptions) {
 						var style = L.extend({}, L.Path.prototype.options, styleOptions[j]);
@@ -164,6 +155,25 @@ L.VectorGrid = L.GridLayer.extend({
 				this._updateStyles(feat, tile, styleOptions);
 			}
 		}
+	},
+
+	vtGeometryToPoint: function(geometry, vtLayer, tileCoords) {
+		var pxPerExtent = this.getTileSize().x / vtLayer.extent;
+		var tileSize = this.getTileSize();
+		var offset = tileCoords.scaleBy(tileSize);
+		var point;
+		if (typeof geometry[0] === 'object' && 'x' in geometry[0]) {
+			// Protobuf vector tiles return [{x: , y:}]
+			point = L.point(offset.x + (geometry[0].x * pxPerExtent), offset.y + (geometry[0].y * pxPerExtent));
+		} else {
+			// Geojson-vt returns [,]
+			point = L.point(offset.x + (geometry[0] * pxPerExtent), offset.y + (geometry[1] * pxPerExtent));
+		}
+		return point;
+	},
+
+	vtGeometryToLatLng: function(geometry, vtLayer, tileCoords) {
+		return this._map.unproject(this.vtGeometryToPoint(geometry, vtLayer, tileCoords));
 	},
 
 	_updateStyles: function(feat, renderer, styleOptions) {
