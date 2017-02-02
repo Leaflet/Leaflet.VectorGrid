@@ -15,10 +15,11 @@ L.VectorGrid = L.GridLayer.extend({
 		if (this.options.getFeatureId) {
 			this._vectorTiles = {};
 			this._overriddenStyles = {};
-			this.on('tileunload', function(e) {
-				delete this._vectorTiles[this._tileCoordsToKey(e.coords)];
-			}, this);
 		}
+		this._userLayers = {};
+		this.on('tileunload', function(e) {
+			this._tileUnload(e);
+		}, this);
 	},
 
 	createTile: function(coords, done) {
@@ -174,6 +175,29 @@ L.VectorGrid = L.GridLayer.extend({
 
 	vtGeometryToLatLng: function(geometry, vtLayer, tileCoords) {
 		return this._map.unproject(this.vtGeometryToPoint(geometry, vtLayer, tileCoords));
+	},
+
+	addUserLayer: function(userLayer, tileCoords) {
+		var tileKey = this._tileCoordsToKey(tileCoords);
+		this._userLayers[tileKey] = this._userLayers[tileKey] || [];
+		this._userLayers[tileKey].push(userLayer);
+		this._map.addLayer(userLayer);
+	},
+
+	_tileUnload: function(e) {
+		var tileKey = this._tileCoordsToKey(e.coords);
+		if (this._vectorTiles) {
+			delete this._vectorTiles[tileKey];
+		}
+		var userLayers = this._userLayers[tileKey];
+		if (!userLayers) {
+			return;
+		}
+		for(var i = 0; i < userLayers.length; i++) {
+			console.log('remove layer');
+			this._map.removeLayer(userLayers[i]);
+		}
+		delete this._userLayers[tileKey];
 	},
 
 	_updateStyles: function(feat, renderer, styleOptions) {
