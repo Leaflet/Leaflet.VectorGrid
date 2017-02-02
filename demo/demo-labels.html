@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet Map Panes Example</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+	<script src="http://localhost:4567/Leaflet.VectorGrid.bundled.js"></script>
+</head>
+<body style='margin:0'>
+	<div id="map" style="width: 100vw; height: 100vh"></div>
+
+	<script>
+
+		var map = L.map('map');
+
+		var url = 'https://{s}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/{z}/{x}/{y}.vector.pbf?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw';
+
+		var vectorTileOptions = {
+			rendererFactory: L.canvas.tile,
+			attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://www.mapbox.com/about/maps/">MapBox</a>',
+			onEachFeature: function(feature, featureLayer, vtLayer, tileCoords) {
+				if(vtLayer.name === 'place_label' && feature.properties.localrank > 60) {
+					var latlng = this.vtGeometryToLatLng(feature.geometry[0], vtLayer, tileCoords)
+					marker = new L.Marker(latlng);
+					marker.bindTooltip(feature.properties.name).openTooltip();
+					this.addUserLayer(marker, tileCoords);
+				}
+			},
+			vectorTileLayerStyles: {
+
+				water: {
+					weight: 0,
+					fillColor: '#9bc2c4',
+					fillOpacity: 1,
+					fill: true,
+					stroke: false
+				},
+
+				admin: [],
+				state_label: [],
+				country_label: [],
+				marine_label: [],
+				state_label: [],
+				place_label: function(properties) {
+					if(properties.localrank > 60) {
+						return {};
+					} else {
+						return [];
+					}
+				},
+				waterway_label: [],
+				landuse: [],
+				landuse_overlay: [],
+				road: [],
+				poi_label: [],
+				waterway: [],
+				aeroway: [],
+				tunnel: [],
+				bridge: [],
+				barrier_line: [],
+				building: [],
+				road_label: [],
+				housenum_label: [],
+
+			}
+		};
+
+		var pbfLayer = L.vectorGrid.protobuf(url, vectorTileOptions).addTo(map);
+
+		map.setView({ lat: 47.040182144806664, lng: 9.667968750000002 }, 6);
+
+
+	</script>
+</body>
+</html>
