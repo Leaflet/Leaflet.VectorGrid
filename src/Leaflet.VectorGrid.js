@@ -37,8 +37,7 @@ L.VectorGrid = L.GridLayer.extend({
 			for (var layerName in vectorTile.layers) {
 				var layer = vectorTile.layers[layerName];
 
-				/// NOTE: THIS ASSUMES SQUARE TILES!!!!!1!
-				var pxPerExtent = this.getTileSize().x / layer.extent;
+				var pxPerExtent = this.getTileSize().divideBy(layer.extent);
 
 				var layerStyle = this.options.vectorTileLayerStyles[ layerName ] ||
 				L.Path.prototype.options;
@@ -241,11 +240,11 @@ var PointLayer = L.CircleMarker.extend({
 		var coord = feat.geometry[0];
 		if (typeof coord[0] === 'object' && 'x' in coord[0]) {
 			// Protobuf vector tiles return [{x: , y:}]
-			this._point = L.point(coord[0].x * pxPerExtent, coord[0].y * pxPerExtent);
+			this._point = L.point(coord[0]).scaleBy(pxPerExtent);
 			this._empty = L.Util.falseFn;
 		} else {
 			// Geojson-vt returns [,]
-			this._point = L.point(coord[0] * pxPerExtent, coord[1] * pxPerExtent);
+			this._point = L.point(coord).scaleBy(pxPerExtent);
 			this._empty = L.Util.falseFn;
 		}
 	},
@@ -317,13 +316,9 @@ var polyBase = {
 			var part = [];
 			for (var j = 0; j < ring.length; j++) {
 				coord = ring[j];
-				if ('x' in coord) {
-					// Protobuf vector tiles return {x: , y:}
-					part.push(L.point(coord.x * pxPerExtent, coord.y * pxPerExtent));
-				} else {
-					// Geojson-vt returns [,]
-					part.push(L.point(coord[0] * pxPerExtent, coord[1] * pxPerExtent));
-				}
+				// Protobuf vector tiles return {x: , y:}
+				// Geojson-vt returns [,]
+				part.push(L.point(coord).scaleBy(pxPerExtent));
 			}
 			this._parts.push(part);
 		}
