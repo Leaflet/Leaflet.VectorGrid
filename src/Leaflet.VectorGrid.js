@@ -43,7 +43,7 @@ L.VectorGrid = L.GridLayer.extend({
 				var layerStyle = this.options.vectorTileLayerStyles[ layerName ] ||
 				L.Path.prototype.options;
 
-				for (var i in layer.features) {
+				for (var i = 0; i < layer.features.length; i++) {
 					var feat = layer.features[i];
 					var id;
 
@@ -74,7 +74,7 @@ L.VectorGrid = L.GridLayer.extend({
 
 					var featureLayer = this._createLayer(feat, pxPerExtent);
 
-					for (var j in styleOptions) {
+					for (var j = 0; j < styleOptions.length; j++) {
 						var style = L.extend({}, L.Path.prototype.options, styleOptions[j]);
 						featureLayer.render(renderer, style);
 						renderer._addPath(featureLayer);
@@ -153,7 +153,7 @@ L.VectorGrid = L.GridLayer.extend({
 			styleOptions = [styleOptions];
 		}
 
-		for (var j in styleOptions) {
+		for (var j = 0; j < styleOptions.length; j++) {
 			var style = L.extend({}, L.Path.prototype.options, styleOptions[j]);
 			feat.updateStyle(renderer, style);
 		}
@@ -312,10 +312,10 @@ var polyBase = {
 		var coord;
 
 		this._parts = [];
-		for (var i in rings) {
+		for (var i = 0; i < rings.length; i++) {
 			var ring = rings[i];
 			var part = [];
-			for (var j in ring) {
+			for (var j = 0; j < ring.length; j++) {
 				coord = ring[j];
 				if ('x' in coord) {
 					// Protobuf vector tiles return {x: , y:}
