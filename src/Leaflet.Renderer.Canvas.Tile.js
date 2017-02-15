@@ -61,7 +61,6 @@ L.Canvas.Tile = L.Canvas.extend({
 		if (!this._map || this._map.dragging.moving() || this._map._animatingZoom) { return; }
 
 		var point = this._map.mouseEventToLayerPoint(e).subtract(this.getOffset());
-		this._handleMouseOut(e, point);
 		this._handleMouseHover(e, point);
 	},
 
