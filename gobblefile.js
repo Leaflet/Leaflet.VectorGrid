@@ -125,6 +125,6 @@ module.exports = gobble([
 	uglifiedCode,       	// No extra deps,    minified
 	uglifiedBundledCode,	//    Extra deps,    minified
 
-// 	demo,
+	demo,
 // 	leaflet
 ]);

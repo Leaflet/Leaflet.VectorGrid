@@ -1,11 +1,36 @@
 import {} from './Leaflet.Renderer.SVG.Tile.js';
+import { PointSymbolizer } from './Symbolizer.Point.js';
+import { LineSymbolizer } from './Symbolizer.Line.js';
+import { FillSymbolizer } from './Symbolizer.Fill.js';
+
+/* 🍂class VectorGrid
+ * 🍂inherits GridLayer
+ *
+ * A `VectorGrid` is a generic, abstract class for displaying tiled vector data.
+ * it provides facilities for symbolizing and rendering the data in the vector
+ * tiles, but lacks the functionality to fetch the vector tiles from wherever
+ * they are.
+ */
 
 L.VectorGrid = L.GridLayer.extend({
 
 	options: {
+		// 🍂option rendererFactory = L.svg.tile
+		// A factory method which will be used to instantiate the per-tile renderers.
 		rendererFactory: L.svg.tile,
+
+		// 🍂option vectorTileLayerStyles: Object = {}
+		// A data structure holding initial symbolizer definitions for the vector features.
 		vectorTileLayerStyles: {},
-		interactive: false
+
+		// 🍂option interactive: Boolean = false
+		// Whether this `VectorGrid` fires `Interactive Layer` events.
+		interactive: false,
+
+		// 🍂option getFeatureId: Function = undefined
+		// A function that, given a vector feature, returns an unique identifier for it, e.g.
+		// `function(feat) { return feat.properties.uniqueIdField; }`.
+		// Must be defined for `setFeatureStyle` to work.
 	},
 
 	initialize: function(options) {
@@ -24,6 +49,7 @@ L.VectorGrid = L.GridLayer.extend({
 				delete this._vectorTiles[key];
 			}, this);
 		}
+		this._dataLayerNames = {};
 	},
 
 	createTile: function(coords, done) {
@@ -41,6 +67,7 @@ L.VectorGrid = L.GridLayer.extend({
 
 		vectorTilePromise.then( function renderTile(vectorTile) {
 			for (var layerName in vectorTile.layers) {
+				this._dataLayerNames[layerName] = true;
 				var layer = vectorTile.layers[layerName];
 
 				var pxPerExtent = this.getTileSize().divideBy(layer.extent);
@@ -107,6 +134,9 @@ L.VectorGrid = L.GridLayer.extend({
 		return renderer.getContainer();
 	},
 
+	// 🍂method setFeatureStyle(id: Number, layerStyle: L.Path Options): this
+	// Given the unique ID for a vector features (as per the `getFeatureId` option),
+	// re-symbolizes that feature across all tiles it appears in.
 	setFeatureStyle: function(id, layerStyle) {
 		this._overriddenStyles[id] = layerStyle;
 
@@ -125,8 +155,11 @@ L.VectorGrid = L.GridLayer.extend({
 				this._updateStyles(feat, tile, styleOptions);
 			}
 		}
+		return this;
 	},
 
+	// 🍂method setFeatureStyle(id: Number): this
+	// Reverts the effects of a previous `setFeatureStyle` call.
 	resetFeatureStyle: function(id) {
 		delete this._overriddenStyles[id];
 
@@ -141,6 +174,14 @@ L.VectorGrid = L.GridLayer.extend({
 				this._updateStyles(feat, tile, styleOptions);
 			}
 		}
+		return this;
+	},
+
+	// 🍂method getDataLayerNames(): Array
+	// Returns an array of strings, with all the known names of data layers in
+	// the vector tiles displayed. Useful for introspection.
+	getDataLayerNames: function() {
+		return Object.keys(this._dataLayerNames);
 	},
 
 	_updateStyles: function(feat, renderer, styleOptions) {
@@ -162,13 +203,13 @@ L.VectorGrid = L.GridLayer.extend({
 		var layer;
 		switch (feat.type) {
 		case 1:
-			layer = new PointLayer(feat, pxPerExtent);
+			layer = new PointSymbolizer(feat, pxPerExtent);
 			break;
 		case 2:
-			layer = new PolylineLayer(feat, pxPerExtent);
+			layer = new LineSymbolizer(feat, pxPerExtent);
 			break;
 		case 3:
-			layer = new PolygonLayer(feat, pxPerExtent);
+			layer = new FillSymbolizer(feat, pxPerExtent);
 			break;
 		}
 
@@ -180,185 +221,17 @@ L.VectorGrid = L.GridLayer.extend({
 	},
 });
 
+/*
+ * 🍂section Extension methods
+ *
+ * Classes inheriting from `VectorGrid` **must** define the following private method.
+ *
+ * 🍂method _getVectorTilePromise(coords: Object): Promise
+ * Given a `coords` object in the form of `{x: Number, y: Number, z: Number}`,
+ * this function must return a `Promise` for a vector tile.
+ *
+ */
 L.vectorGrid = function (options) {
 	return new L.VectorGrid(options);
 };
 
-var FeatureLayer = L.Class.extend({
-	render: function(renderer, style) {
-		this._renderer = renderer;
-		this.options = style;
-		renderer._initPath(this);
-		renderer._updateStyle(this);
-	},
-
-	updateStyle: function(renderer, style) {
-		this.options = style;
-		renderer._updateStyle(this);
-	},
-
-	_getPixelBounds: function() {
-		var parts = this._parts;
-		var bounds = L.bounds([]);
-		for (var i = 0; i < parts.length; i++) {
-			var part = parts[i];
-			for (var j = 0; j < part.length; j++) {
-				bounds.extend(part[j]);
-			}
-		}
-
-		var w = this._clickTolerance(),
-		    p = new L.Point(w, w);
-
-		bounds.min._subtract(p);
-		bounds.max._add(p);
-
-		return bounds;
-	},
-	_clickTolerance: L.Path.prototype._clickTolerance,
-});
-
-var PointLayer = L.CircleMarker.extend({
-	includes: FeatureLayer.prototype,
-
-	statics: {
-		iconCache: {}
-	},
-
-	initialize: function(feature, pxPerExtent) {
-		this.properties = feature.properties;
-		this._makeFeatureParts(feature, pxPerExtent);
-	},
-
-	render: function(renderer, style) {
-		FeatureLayer.prototype.render.call(this, renderer, style);
-		this._radius = style.radius || L.CircleMarker.prototype.options.radius;
-		this._updatePath();
-	},
-
-	_makeFeatureParts: function(feat, pxPerExtent) {
-		var coord = feat.geometry[0];
-		if (typeof coord[0] === 'object' && 'x' in coord[0]) {
-			// Protobuf vector tiles return [{x: , y:}]
-			this._point = L.point(coord[0]).scaleBy(pxPerExtent);
-			this._empty = L.Util.falseFn;
-		} else {
-			// Geojson-vt returns [,]
-			this._point = L.point(coord).scaleBy(pxPerExtent);
-			this._empty = L.Util.falseFn;
-		}
-	},
-
-	makeInteractive: function() {
-		this._updateBounds();
-	},
-
-	updateStyle: function(renderer, style) {
-		this._radius = style.radius || this._radius;
-		this._updateBounds();
-		return FeatureLayer.prototype.updateStyle.call(this, renderer, style);
-	},
-
-	_updateBounds: function() {
-		var icon = this.options.icon
-		if (icon) {
-			var size = L.point(icon.options.iconSize),
-			    anchor = icon.options.iconAnchor ||
-			             size && size.divideBy(2, true),
-			    p = this._point.subtract(anchor);
-			this._pxBounds = new L.Bounds(p, p.add(icon.options.iconSize));
-		} else {
-			L.CircleMarker.prototype._updateBounds.call(this);
-		}
-	},
-
-	_updatePath: function() {
-		if (this.options.icon) {
-			this._renderer._updateIcon(this)
-		} else {
-			L.CircleMarker.prototype._updatePath.call(this);
-		}
-	},
-
-	_getImage: function () {
-		if (this.options.icon) {
-			var url = this.options.icon.options.iconUrl,
-			    img = PointLayer.iconCache[url];
-			if (!img) {
-				var icon = this.options.icon;
-				img = PointLayer.iconCache[url] = icon.createIcon();
-			}
-			return img;
-		} else {
-			return null;
-		}
-
-	},
-
-	_containsPoint: function(p) {
-		var icon = this.options.icon;
-		if (icon) {
-			return this._pxBounds.contains(p);
-		} else {
-			return L.CircleMarker.prototype._containsPoint.call(this, p);
-		}
-	}
-});
-
-var polyBase = {
-	_makeFeatureParts: function(feat, pxPerExtent) {
-		var rings = feat.geometry;
-		var coord;
-
-		this._parts = [];
-		for (var i = 0; i < rings.length; i++) {
-			var ring = rings[i];
-			var part = [];
-			for (var j = 0; j < ring.length; j++) {
-				coord = ring[j];
-				// Protobuf vector tiles return {x: , y:}
-				// Geojson-vt returns [,]
-				part.push(L.point(coord).scaleBy(pxPerExtent));
-			}
-			this._parts.push(part);
-		}
-	},
-
-	makeInteractive: function() {
-		this._pxBounds = this._getPixelBounds();
-	}
-};
-
-var PolylineLayer = L.Polyline.extend({
-	includes: [FeatureLayer.prototype, polyBase],
-
-	initialize: function(feature, pxPerExtent) {
-		this.properties = feature.properties;
-		this._makeFeatureParts(feature, pxPerExtent);
-	},
-
-	render: function(renderer, style) {
-		style.fill = false;
-		FeatureLayer.prototype.render.call(this, renderer, style);
-		this._updatePath();
-	},
-
-	updateStyle: function(renderer, style) {
-		style.fill = false;
-		FeatureLayer.prototype.updateStyle.call(this, renderer, style);
-	},
-});
-
-var PolygonLayer = L.Polygon.extend({
-	includes: [FeatureLayer.prototype, polyBase],
-
-	initialize: function(feature, pxPerExtent) {
-		this.properties = feature.properties;
-		this._makeFeatureParts(feature, pxPerExtent);
-	},
-
-	render: function(renderer, style) {
-		FeatureLayer.prototype.render.call(this, renderer, style);
-		this._updatePath();
-	}
-});

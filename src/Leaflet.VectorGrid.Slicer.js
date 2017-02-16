@@ -5,11 +5,43 @@
 
 import workerCode from './slicerWebWorker.js.worker';
 
-
+/*
+ * 🍂class VectorGrid.Slicer
+ * 🍂extends VectorGrid
+ *
+ * A `VectorGrid` for slicing up big GeoJSON or TopoJSON documents in vector
+ * tiles, leveraging [`geojson-vt`](https://github.com/mapbox/geojson-vt).
+ *
+ * 🍂example
+ *
+ * ```
+ * var geoJsonDocument = {
+ * 	type: 'FeatureCollection',
+ * 	features: [ ... ]
+ * };
+ *
+ * L.vectorGrid.slicer(geoJsonDocument, {
+ * 	vectorTileLayerStyles: {
+ * 		sliced: { ... }
+ * 	}
+ * }).addTo(map);
+ *
+ * ```
+ *
+ */
 L.VectorGrid.Slicer = L.VectorGrid.extend({
 
 	options: {
+		// 🍂section
+		// Additionally to these options, `VectorGrid.Slicer` can take in any
+		// of the [`geojson-vt` options](https://github.com/mapbox/geojson-vt#options).
+
+		// 🍂option vectorTileLayerName: String = 'sliced'
+		// Vector tiles contain a set of *data layers*, and those data layers
+		// contain features. Thus, the slicer creates one data layer, with
+		// the name given in this option. This is important for symbolizing the data.
 		vectorTileLayerName: 'sliced',
+
 		extent: 4096,	// Default for geojson-vt
 		maxZoom: 14  	// Default for geojson-vt
 	},

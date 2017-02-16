@@ -2,14 +2,44 @@
 import Pbf from 'pbf';
 import {VectorTile} from 'vector-tile';
 
-// Network & Protobuf powered!
-// NOTE: Assumes the globals `VectorTile` and `Pbf` exist!!!
+/*
+ * 🍂class VectorGrid.Protobuf
+ * 🍂extends VectorGrid
+ *
+ * A `VectorGrid` for vector tiles fetched from the internet.
+ * Tiles are supposed to be protobufs (AKA "protobuffer" or "Protocol Buffers"),
+ * containing data which complies with the
+ * [MapBox Vector Tile Specification](https://github.com/mapbox/vector-tile-spec/tree/master/2.1)
+ *
+ * This is the format used by:
+ * - Mapbox Vector Tiles
+ * - Mapzen Vector Tiles
+ * - ESRI Vector Tiles
+ * - [OpenMapTiles hosted Vector Tiles](https://openmaptiles.com/hosting/)
+ *
+ * 🍂example
+ *
+ *
+ *
+ * For OpenMapTiles, with a key from [https://openmaptiles.org/docs/host/use-cdn/](https://openmaptiles.org/docs/host/use-cdn/),
+ * initialization looks like this:
+ *
+ * ```
+ * var omtKey = 'abcdefghi01234567890';
+ * L.vectorGrid.protobuf("https://free-{s}.tilehosting.com/data/v3/{z}/{x}/{y}.pbf.pict?key=" + omtKey,{
+ * 	vectorTileLayerStyles: { ... },
+ * 	subdomains: "1234"
+ * }).addTo(map);
+ * ```
+ *
+ */
 L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	options: {
+		// 🍂option subdomains: String = 'abc'
+		// Akin to the `subdomains` option for `L.TileLayer`.
 		subdomains: 'abc',	// Like L.TileLayer
 	},
-
 
 	initialize: function(url, options) {
 		// Inherits options from geojson-vt!
@@ -18,9 +48,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 		L.VectorGrid.prototype.initialize.call(this, options);
 	},
 
-
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
-
 
 	_getVectorTilePromise: function(coords) {
 		var data = {
@@ -87,6 +115,8 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 });
 
 
+// 🍂factory L.vectorGrid.protobuf(url: String, options)
+// Instantiates a new protobuf VectorGrid with the given URL template and options
 L.vectorGrid.protobuf = function (url, options) {
 	return new L.VectorGrid.Protobuf(url, options);
 };
