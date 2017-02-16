@@ -159,16 +159,20 @@ L.VectorGrid = L.GridLayer.extend({
 	},
 
 	_createLayer: function(feat, pxPerExtent, layerStyle) {
+		var options = {
+			storeProperties: this.options.getFeatureId
+		};
 		var layer;
+
 		switch (feat.type) {
 		case 1:
-			layer = new PointLayer(feat, pxPerExtent);
+			layer = new PointLayer(feat, pxPerExtent, options);
 			break;
 		case 2:
-			layer = new PolylineLayer(feat, pxPerExtent);
+			layer = new PolylineLayer(feat, pxPerExtent, options);
 			break;
 		case 3:
-			layer = new PolygonLayer(feat, pxPerExtent);
+			layer = new PolygonLayer(feat, pxPerExtent, options);
 			break;
 		}
 
@@ -225,8 +229,10 @@ var PointLayer = L.CircleMarker.extend({
 		iconCache: {}
 	},
 
-	initialize: function(feature, pxPerExtent) {
-		this.properties = feature.properties;
+	initialize: function(feature, pxPerExtent, options) {
+		if (options.storeProperties) {
+			this.properties = feature.properties;
+		}
 		this._makeFeatureParts(feature, pxPerExtent);
 	},
 
@@ -332,8 +338,10 @@ var polyBase = {
 var PolylineLayer = L.Polyline.extend({
 	includes: [FeatureLayer.prototype, polyBase],
 
-	initialize: function(feature, pxPerExtent) {
-		this.properties = feature.properties;
+	initialize: function(feature, pxPerExtent, options) {
+		if (options.storeProperties) {
+			this.properties = feature.properties;
+		}
 		this._makeFeatureParts(feature, pxPerExtent);
 	},
 
@@ -352,8 +360,10 @@ var PolylineLayer = L.Polyline.extend({
 var PolygonLayer = L.Polygon.extend({
 	includes: [FeatureLayer.prototype, polyBase],
 
-	initialize: function(feature, pxPerExtent) {
-		this.properties = feature.properties;
+	initialize: function(feature, pxPerExtent, options) {
+		if (options.storeProperties) {
+			this.properties = feature.properties;
+		}
 		this._makeFeatureParts(feature, pxPerExtent);
 	},
 
