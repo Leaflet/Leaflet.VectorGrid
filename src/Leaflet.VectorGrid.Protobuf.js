@@ -7,7 +7,13 @@ import {VectorTile} from 'vector-tile';
 L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	options: {
+		minZoom: 0,		// Like L.TileLayer
+		maxZoom: 18,		// Like L.TileLayer
+		maxNativeZoom: null,	// Like L.TileLayer
+		minNativeZoom: null,	// Like L.TileLayer
 		subdomains: 'abc',	// Like L.TileLayer
+		zoomOffset: 0,		// Like L.TileLayer
+		zoomReverse: false,	// Like L.TileLayer
 	},
 
 
@@ -21,14 +27,16 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
 
+	getTileSize: L.TileLayer.prototype.getTileSize,
+
+	_getZoomForUrl: L.TileLayer.prototype._getZoomForUrl,
 
 	_getVectorTilePromise: function(coords) {
 		var data = {
 			s: this._getSubdomain(coords),
 			x: coords.x,
 			y: coords.y,
-			z: coords.z
-// 			z: this._getZoomForUrl()	/// TODO: Maybe replicate TileLayer's maxNativeZoom
+			z: this._getZoomForUrl(),
 		};
 		if (this._map && !this._map.options.crs.infinite) {
 			var invertedY = this._globalTileRange.max.y - coords.y;
