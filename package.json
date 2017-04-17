@@ -42,7 +42,8 @@
   "dependencies": {
     "pbf": "^3.0.2",
     "topojson-client": "^2.1.0",
-    "vector-tile": "^1.3.0"
+    "vector-tile": "^1.3.0",
+    "whatwg-fetch": "^2.0.3"
   },
   "peerDependencies": {
     "leaflet": "^1.0.2"
