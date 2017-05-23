@@ -36,6 +36,7 @@ L.Canvas.Tile = L.Canvas.extend({
 
 	addTo: function(map) {
 		this._map = map;
+		this._draw();
 	},
 
 	removeFrom: function (map) {
