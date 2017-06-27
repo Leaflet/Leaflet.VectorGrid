@@ -1,7 +1,7 @@
 
 
 var gobble = require('gobble');
-var src = gobble('src');
+var src = gobble('src').transform('hardlink');
 
 
 // Run rollup on the web worker code, in order to include GeoJSON-vt and TopoJSON into it.
@@ -44,8 +44,8 @@ var uglifiedWebWorker = src.transform('rollup', {
 });
 
 // Get the rolled-up worker code back next to the same directory as the main code
-var src2         = gobble([src, concatenatedWebWorker]);
-var src2uglified = gobble([src, uglifiedWebWorker]);
+var src2         = gobble([src, concatenatedWebWorker]).transform('hardlink');
+var src2uglified = gobble([src, uglifiedWebWorker]).transform('hardlink');
 
 
 // We'll run rollup four times, with slightly different options and using different
