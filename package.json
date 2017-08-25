@@ -28,16 +28,16 @@
     "url": "https://github.com/IvanSanchez/Leaflet.VectorGrid/issues"
   },
   "devDependencies": {
-    "geojson-vt": "^2.2.0",
-    "gobble": "^0.11.3",
-    "gobble-cli": "^0.7.0",
-    "gobble-leafdoc": "^0.1.8",
-    "gobble-rollup": "^0.36.0",
-    "rollup-plugin-buble": "^0.14.0",
-    "rollup-plugin-commonjs": "^5.0.5",
-    "rollup-plugin-file-as-blob": "^1.1.2",
-    "rollup-plugin-node-resolve": "^2.0.0",
-    "rollup-plugin-uglify": "^1.0.1"
+    "geojson-vt": "=2.2.0",
+    "gobble": "=0.11.3",
+    "gobble-cli": "=0.7.0",
+    "gobble-leafdoc": "=0.1.8",
+    "gobble-rollup": "=0.36.0",
+    "rollup-plugin-buble": "=0.14.0",
+    "rollup-plugin-commonjs": "=5.0.5",
+    "rollup-plugin-file-as-blob": "=1.1.2",
+    "rollup-plugin-node-resolve": "=2.0.0",
+    "rollup-plugin-uglify": "=1.0.1"
   },
   "dependencies": {
     "pbf": "^3.0.2",
