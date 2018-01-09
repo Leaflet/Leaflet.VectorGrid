@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "eslint": "^4.5.0",
-    "geojson-vt": "=2.2.0",
+    "geojson-vt": "=3.0.0",
     "gobble": "=0.11.3",
     "gobble-cli": "=0.7.0",
     "gobble-leafdoc": "=0.1.8",
