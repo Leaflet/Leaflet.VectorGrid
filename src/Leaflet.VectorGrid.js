@@ -68,6 +68,14 @@ L.VectorGrid = L.GridLayer.extend({
 		}
 
 		vectorTilePromise.then( function renderTile(vectorTile) {
+			if(vectorTile.response && !vectorTile.response.ok){
+				this.fire('tileerror',{
+					error: new Error(vectorTile.response.status + ":"+vectorTile.response.statusText),
+					coords: coords,
+					tile: renderer.getContainer()
+				})
+				console.log(vectorTile)
+			}
 			for (var layerName in vectorTile.layers) {
 				this._dataLayerNames[layerName] = true;
 				var layer = vectorTile.layers[layerName];

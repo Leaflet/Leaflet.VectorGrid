@@ -107,7 +107,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 		return fetch(tileUrl, this.options.fetchOptions).then(function(response){
 
 			if (!response.ok) {
-				return {layers:[]};
+				return {layers:[],response:response};
 			}
 
 			return response.blob().then( function (blob) {
