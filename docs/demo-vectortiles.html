@@ -97,7 +97,7 @@
 				fillOpacity: 0.2,
 				opacity: 0.4
 			},
-			road: {	// mapbox & mapzen only
+			road: {	// mapbox & nextzen only
 				weight: 1,
 				fillColor: '#f2b648',
 				color: '#f2b648',
@@ -128,7 +128,7 @@
 				opacity: 0.4,
 // 					dashArray: [4, 4]
 			},
-			transit: {	// mapzen only
+			transit: {	// nextzen only
 				weight: 0.5,
 				fillColor: '#f2b648',
 				color: '#f2b648',
@@ -179,7 +179,7 @@
 				fillOpacity: 0.2,
 				opacity: 0.4
 			},
-			earth: {	// mapzen only
+			earth: {	// nextzen only
 				fill: true,
 				weight: 1,
 				fillColor: '#c0c0c0',
@@ -211,7 +211,7 @@
 			housenum_name: [],
 		};
 
-		// Monkey-patch some properties for mapzen layer names, because
+		// Monkey-patch some properties for nextzen layer names, because
 		// instead of "building" the data layer is called "buildings" and so on
 		vectorTileStyling.buildings  = vectorTileStyling.building;
 		vectorTileStyling.boundaries = vectorTileStyling.boundary;
@@ -255,16 +255,16 @@
 
 
 		// Assumes layers = "all", and format = "mvt"
-		var mapzenTilesUrl = "https://tile.mapzen.com/mapzen/vector/v1/all/{z}/{x}/{y}.mvt?api_key={apikey}";
+		var nextzenTilesUrl = "https://tile.nextzen.org/tilezen/vector/v1/512/all/{z}/{x}/{y}.mvt?api_key={apikey}";
 
-		var mapzenVectorTileOptions = {
+		var nextzenVectorTileOptions = {
 			rendererFactory: L.canvas.tile,
-			attribution: '<a href="https://mapzen.com/">&copy; MapZen</a>, <a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a> contributors',
+			attribution: '<a href="https://nextzen.com/">&copy; NextZen</a>, <a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a> contributors',
 			vectorTileLayerStyles: vectorTileStyling,
-			apikey: 'mapzen-cfbEgD9',
+			apikey: 'gCZXZglvRQa6sB2z7JzL1w',
 		};
 
-		var mapzenTilesPbfLayer = L.vectorGrid.protobuf(mapzenTilesUrl, mapzenVectorTileOptions);
+		var nextzenTilesPbfLayer = L.vectorGrid.protobuf(nextzenTilesUrl, nextzenVectorTileOptions);
 
 
 
@@ -364,7 +364,7 @@
 		L.control.layers({
 			OpenMapTiles: openmaptilesPbfLayer,
 			"MapBox Vector Tiles": mapboxPbfLayer,
-			"MapZen Vector Tiles": mapzenTilesPbfLayer,
+			"NextZen Vector Tiles": nextzenTilesPbfLayer,
 			"ESRI basemap vector tiles": esriTilesPbfLayer
 		}, {}, {collapsed: false}).addTo(map);
 
