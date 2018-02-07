@@ -107,14 +107,15 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 		return fetch(tileUrl, this.options.fetchOptions).then(function(response){
 
 			if (!response.ok) {
-				return {layers:[]};
+				throw new Error('Failed to fetch tile: HTTP response ' + response.status + 
+				' ' + response.statusText);
 			}
 
 			return response.blob().then( function (blob) {
 // 				console.log(blob);
 
 				var reader = new FileReader();
-				return new Promise(function(resolve){
+				return new Promise(function(resolve, reject){
 					reader.addEventListener("loadend", function() {
 						// reader.result contains the contents of blob as a typed array
 
@@ -124,6 +125,9 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 						return resolve(new VectorTile( pbf ));
 
 					});
+					reader.addEventListener("error", reject);
+					reader.addEventListener("abort", reject);
+
 					reader.readAsArrayBuffer(blob);
 				});
 			});
@@ -146,6 +150,8 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			}
 
 			return json;
+		}).catch(function(err){
+			this.fire('tileerror', err);
 		});
 	}
 });
