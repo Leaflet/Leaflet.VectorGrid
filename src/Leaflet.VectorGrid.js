@@ -61,7 +61,9 @@ L.VectorGrid = L.GridLayer.extend({
 		var tileSize = this.getTileSize();
 		var renderer = this.options.rendererFactory(coords, tileSize, this.options);
 
-		var vectorTilePromise = this._getVectorTilePromise(coords);
+		var tileBounds = this._tileCoordsToBounds(coords);	
+
+		var vectorTilePromise = this._getVectorTilePromise(coords, tileBounds);
 
 		if (storeFeatures) {
 			this._vectorTiles[this._tileCoordsToKey(coords)] = renderer;

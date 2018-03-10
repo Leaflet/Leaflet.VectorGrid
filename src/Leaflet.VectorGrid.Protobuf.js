@@ -86,18 +86,23 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
 
-	_zoomMatch : function(coords) {
+	_isCurrentTile : function(coords, tileBounds) {
 
 		if (!this._map) {
 			return true;
 		}
 
 		var zoom = this._map._animateToZoom || this._map._zoom;
-		return zoom === coords.z;
+		var currentZoom = zoom === coords.z;
+
+		var tileBounds = this._tileCoordsToBounds(coords);
+		var currentBounds = this._map.getBounds().overlaps(tileBounds); 
+
+		return currentZoom && currentBounds;
 
 	},
 
-	_getVectorTilePromise: function(coords) {
+	_getVectorTilePromise: function(coords, tileBounds) {
 		var data = {
 			s: this._getSubdomain(coords),
 			x: coords.x,
@@ -113,7 +118,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			data['-y'] = invertedY;
 		}
 
-		if (!this._zoomMatch(coords)) {
+		if (!this._isCurrentTile(coords, tileBounds)) {
 			return Promise.resolve({layers:[]});
 		}
 
@@ -121,7 +126,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 		return fetch(tileUrl, this.options.fetchOptions).then(function(response){
 
-			if (!response.ok || !this._zoomMatch(coords)) {
+			if (!response.ok || !this._isCurrentTile(coords)) {
 				return {layers:[]};
 			} 
 
