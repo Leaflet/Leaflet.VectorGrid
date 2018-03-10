@@ -86,6 +86,20 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
 
+	_zoomMatch : function(coords) {
+
+		//console.log(this._map._animateToZoom);
+		if (!this._map) {
+			return true;
+		}
+		var zoom = this._map._animateToZoom || this._map._zoom;
+		console.log("zoom", zoom);
+		console.log("coords.z", coords.z);
+
+		return zoom === coords.z;
+
+	},
+
 	_getVectorTilePromise: function(coords) {
 		var data = {
 			s: this._getSubdomain(coords),
@@ -102,12 +116,27 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			data['-y'] = invertedY;
 		}
 
+		console.log("Map Zoom: ", this._map._zoom);
+		console.log("Coords Zoom: ", coords.z);
+		console.log("matching", this._zoomMatch(coords))
+		if (!this._zoomMatch(coords)) {
+			console.log("PREFLIGHT SKIP");
+			return Promise.resolve({layers:[]});
+		} else {
+			console.log("EXECUTING FETCH");
+		}
+
 		var tileUrl = L.Util.template(this._url, L.extend(data, this.options));
 
 		return fetch(tileUrl, this.options.fetchOptions).then(function(response){
 
-			if (!response.ok) {
+			console.log("Fetch response...");
+
+			if (!response.ok || !this._zoomMatch(coords)) {
+				console.log("SKIPPING RESPONSE - processing for none zoom level tile");
 				return {layers:[]};
+			} else {
+				console.log("USING RESPONSE")
 			}
 
 			return response.blob().then( function (blob) {
@@ -127,7 +156,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 					reader.readAsArrayBuffer(blob);
 				});
 			});
-		}).then(function(json){
+		}.bind(this)).then(function(json){
 
 // 			console.log('Vector tile:', json.layers);
 // 			console.log('Vector tile water:', json.layers.water);	// Instance of VectorTileLayer
