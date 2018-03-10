@@ -86,7 +86,23 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
 
-	_getVectorTilePromise: function(coords) {
+	_isCurrentTile : function(coords, tileBounds) {
+
+		if (!this._map) {
+			return true;
+		}
+
+		var zoom = this._map._animateToZoom || this._map._zoom;
+		var currentZoom = zoom === coords.z;
+
+		var tileBounds = this._tileCoordsToBounds(coords);
+		var currentBounds = this._map.getBounds().overlaps(tileBounds); 
+
+		return currentZoom && currentBounds;
+
+	},
+
+	_getVectorTilePromise: function(coords, tileBounds) {
 		var data = {
 			s: this._getSubdomain(coords),
 			x: coords.x,
@@ -102,35 +118,34 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			data['-y'] = invertedY;
 		}
 
+		if (!this._isCurrentTile(coords, tileBounds)) {
+			return Promise.resolve({layers:[]});
+		}
+
 		var tileUrl = L.Util.template(this._url, L.extend(data, this.options));
 
 		return fetch(tileUrl, this.options.fetchOptions).then(function(response){
 
-			if (!response.ok) {
+			if (!response.ok || !this._isCurrentTile(coords)) {
 				return {layers:[]};
-			}
+			} 
 
 			return response.blob().then( function (blob) {
-// 				console.log(blob);
 
 				var reader = new FileReader();
 				return new Promise(function(resolve){
 					reader.addEventListener("loadend", function() {
 						// reader.result contains the contents of blob as a typed array
-
 						// blob.type === 'application/x-protobuf'
 						var pbf = new Pbf( reader.result );
-// 						console.log(pbf);
 						return resolve(new VectorTile( pbf ));
 
 					});
 					reader.readAsArrayBuffer(blob);
 				});
 			});
-		}).then(function(json){
 
-// 			console.log('Vector tile:', json.layers);
-// 			console.log('Vector tile water:', json.layers.water);	// Instance of VectorTileLayer
+		}.bind(this)).then(function(json){
 
 			// Normalize feature getters into actual instanced features
 			for (var layerName in json.layers) {
