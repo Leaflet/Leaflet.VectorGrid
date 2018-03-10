@@ -247,4 +247,3 @@ L.VectorGrid = L.GridLayer.extend({
 L.vectorGrid = function (options) {
 	return new L.VectorGrid(options);
 };
-

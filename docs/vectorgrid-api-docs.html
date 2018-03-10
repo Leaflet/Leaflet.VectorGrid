@@ -366,7 +366,7 @@ Styling is done via per-layer² sets of <code>L.Path</code> options in the <code
 <pre><code class="lang-js">var vectorTileOptions = {
     vectorTileLayerStyles: {
         // A plain set of L.Path options.
-        water: {
+        landuse: {
             weight: 0,
             fillColor: &#39;#9bc2c4&#39;,
             fillOpacity: 1,
@@ -385,6 +385,35 @@ Styling is done via per-layer² sets of <code>L.Path</code> options in the <code
                 fillOpacity: 0
             }
         },
+        // A function for styling features dynamically, depending on their
+        // properties, the map&#39;s zoom level, and the layer's geometry
+        // dimension (point, line, polygon)
+        water: function(properties, zoom, geometryDimension) {
+	    if (geometryDimension === 1) {   // point
+	        return ({
+                    radius: 5,
+                    color: &#39;#cf52d3&#39;,
+                });
+	    }
+	    
+	    if (geometryDimension === 2) {   // line
+                 return ({
+                    weight: 1,
+                    color: &#39;#cf52d3&#39;,
+                    dashArray: &#39;2, 6&#39;,
+                    fillOpacity: 0
+                });
+	    }
+	    
+	    if (geometryDimension === 3) {   // polygon
+	         return ({
+                    weight: 1,
+                    fillColor: &#39;#9bc2c4&#39;,
+                    fillOpacity: 1,
+                    fill: true
+                });
+	    }
+        },
         // An &#39;icon&#39; option means that a L.Icon will be used
         place: {
             icon: new L.Icon.Default()
@@ -399,7 +428,7 @@ var pbfLayer = L.vectorGrid.protobuf(url, vectorTileOptions).addTo(map);
 <li>A set of <code>L.Path</code> options</li>
 <li>An array of sets of <code>L.Path</code> options</li>
 <li>A function that returns a set of <code>L.Path</code> options</li>
-<li>A function that returns an array of sets of <code>L.Path</code> options
+<li>A function that returns an array of sets of <code>L.Path</code> options for point, line, and polygon styles respectively
 <br>
 Layers² with no style specified will use the default <code>L.Path</code> options.
 <br>
