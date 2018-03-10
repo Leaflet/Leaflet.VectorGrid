@@ -56,8 +56,6 @@ L.VectorGrid = L.GridLayer.extend({
 
 	createTile: function(coords, done) {
 
-		//console.log("createTile", coords, done);
-
 		var storeFeatures = this.options.getFeatureId;
 
 		var tileSize = this.getTileSize();

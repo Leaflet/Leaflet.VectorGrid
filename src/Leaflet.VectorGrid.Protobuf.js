@@ -88,14 +88,11 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_zoomMatch : function(coords) {
 
-		//console.log(this._map._animateToZoom);
 		if (!this._map) {
 			return true;
 		}
-		var zoom = this._map._animateToZoom || this._map._zoom;
-		console.log("zoom", zoom);
-		console.log("coords.z", coords.z);
 
+		var zoom = this._map._animateToZoom || this._map._zoom;
 		return zoom === coords.z;
 
 	},
@@ -116,50 +113,34 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			data['-y'] = invertedY;
 		}
 
-		console.log("Map Zoom: ", this._map._zoom);
-		console.log("Coords Zoom: ", coords.z);
-		console.log("matching", this._zoomMatch(coords))
 		if (!this._zoomMatch(coords)) {
-			console.log("PREFLIGHT SKIP");
 			return Promise.resolve({layers:[]});
-		} else {
-			console.log("EXECUTING FETCH");
 		}
 
 		var tileUrl = L.Util.template(this._url, L.extend(data, this.options));
 
 		return fetch(tileUrl, this.options.fetchOptions).then(function(response){
 
-			console.log("Fetch response...");
-
 			if (!response.ok || !this._zoomMatch(coords)) {
-				console.log("SKIPPING RESPONSE - processing for none zoom level tile");
 				return {layers:[]};
-			} else {
-				console.log("USING RESPONSE")
-			}
+			} 
 
 			return response.blob().then( function (blob) {
-// 				console.log(blob);
 
 				var reader = new FileReader();
 				return new Promise(function(resolve){
 					reader.addEventListener("loadend", function() {
 						// reader.result contains the contents of blob as a typed array
-
 						// blob.type === 'application/x-protobuf'
 						var pbf = new Pbf( reader.result );
-// 						console.log(pbf);
 						return resolve(new VectorTile( pbf ));
 
 					});
 					reader.readAsArrayBuffer(blob);
 				});
 			});
-		}.bind(this)).then(function(json){
 
-// 			console.log('Vector tile:', json.layers);
-// 			console.log('Vector tile water:', json.layers.water);	// Instance of VectorTileLayer
+		}.bind(this)).then(function(json){
 
 			// Normalize feature getters into actual instanced features
 			for (var layerName in json.layers) {
