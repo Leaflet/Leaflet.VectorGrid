@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 	<title>Leaflet.GridLayer.Vector.Slicer demo</title>
 	<meta charset="utf-8" />
-
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
-	<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
-	<script src="https://unpkg.com/leaflet.vectorgrid@1.2.0"></script>
+
 </head>
 <body style='margin:0'>
+
 	<div id="map" style="width: 100vw; height: 100vh"></div>
 
+	<script type="text/javascript"  src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+	<script type="text/javascript"  src="https://unpkg.com/leaflet.vectorgrid@1.2.0"></script>
+	<!-- <script type="text/javascript" src="../dist/Leaflet.VectorGrid.bundled.js"></script> -->
 	<script>
-
+		
 		var map = L.map('map');
-// 		var canvasRenderer = L.canvas();
 
 		var cartodbAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>';
 
@@ -43,11 +45,11 @@
 									p === 2 ? '#FEB24C' :
 									p === 3 ? '#B2FE4C' : '#FFEDA0',
 							fillOpacity: 0.5,
-		// 					fillOpacity: 1,
+							//fillOpacity: 1,
 							stroke: true,
 							fill: true,
 							color: 'black',
-	// 							opacity: 0.2,
+	 							//opacity: 0.2,
 							weight: 2,
 						}
 					}
@@ -58,7 +60,6 @@
 			map.setView({ lat: 47.040182144806664, lng: 9.667968750000002 }, 0);
 
 		});
-
 
 	</script>
 </body>
