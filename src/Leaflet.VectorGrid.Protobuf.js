@@ -92,7 +92,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			return true;
 		}
 
-		var zoom = this._map._animateToZoom || this._map._zoom;
+		var zoom = this._map._animatingZoom ? this._map._animateToZoom : this._map._zoom;
 		var currentZoom = zoom === coords.z;
 
 		var tileBounds = this._tileCoordsToBounds(coords);
