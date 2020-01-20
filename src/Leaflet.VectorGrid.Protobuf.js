@@ -86,20 +86,21 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 	_getSubdomain: L.TileLayer.prototype._getSubdomain,
 
-	_isCurrentTile : function(coords, tileBounds) {
+	_isCurrentTile: function(coords) {
 
 		if (!this._map) {
 			return true;
 		}
 
 		var zoom = this._map._animatingZoom ? this._map._animateToZoom : this._map._zoom;
+		var center = this._map._animatingZoom ? this._map._animateToCenter : this._map.getCenter();
 		var currentZoom = zoom === coords.z;
+		var destinationBounds = this._getViewBounds(center, zoom);
 
 		var tileBounds = this._tileCoordsToBounds(coords);
-		var currentBounds = this._map.getBounds().overlaps(tileBounds); 
+		var currentBounds = destinationBounds.overlaps(tileBounds);
 
 		return currentZoom && currentBounds;
-
 	},
 
 	_getVectorTilePromise: function(coords, tileBounds) {
@@ -118,7 +119,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			data['-y'] = invertedY;
 		}
 
-		if (!this._isCurrentTile(coords, tileBounds)) {
+		if (!this._isCurrentTile(coords)) {
 			return Promise.resolve({layers:[]});
 		}
 
@@ -128,7 +129,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 			if (!response.ok || !this._isCurrentTile(coords)) {
 				return {layers:[]};
-			} 
+			}
 
 			return response.blob().then( function (blob) {
 
@@ -162,7 +163,18 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 
 			return json;
 		});
-	}
+	},
+
+	_getViewBounds: function (center, zoom) {
+		var projectedCenter = this._map.project(center, zoom);
+		var size = this._map.getSize();
+		var swPoint = L.point(projectedCenter.x - size.x / 2, projectedCenter.y - size.y / 2);
+		var nePoint = L.point(projectedCenter.x + size.x / 2, projectedCenter.y + size.y / 2);
+		var sw = this._map.unproject(swPoint, zoom);
+		var ne = this._map.unproject(nePoint, zoom);
+
+		return L.latLngBounds(sw, ne);
+	},
 });
 
 
