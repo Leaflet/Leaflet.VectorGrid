@@ -52,7 +52,9 @@ L.Canvas.Tile = L.Canvas.extend({
 			}
 		}
 		if (clickedLayer)  {
-			L.DomEvent.fakeStop(e);
+			// For Leaflet versions < 1.1.0, use _fakeStop.
+			var fakeStop = L.DomEvent._fakeStop || L.DomEvent.fakeStop;
+			fakeStop(e);
 			this._fireEvent([clickedLayer], e);
 		}
 	},
