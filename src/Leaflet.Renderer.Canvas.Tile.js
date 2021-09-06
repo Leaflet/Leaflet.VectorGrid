@@ -29,7 +29,23 @@ L.Canvas.Tile = L.Canvas.extend({
 	},
 
 	getOffset: function() {
-		return this._tileCoord.scaleBy(this._size).subtract(this._map.getPixelOrigin());
+		return this._tileCoord
+			.scaleBy(this._size)
+			.multiplyBy(this.getOverZoomFactor())
+			.subtract(this._map.getPixelOrigin())
+			.divideBy(this.getOverZoomFactor());
+	},
+
+	getOverZoomFactor: function() {
+		var numberOfZoomLevels = Math.max(0, this._map.getZoom() - this._tileCoord.z);
+		return Math.pow(2, numberOfZoomLevels);
+	},
+
+	getPointFromMouseEvent: function(e) {
+		return this._map
+			.mouseEventToLayerPoint(e)
+			.divideBy(this.getOverZoomFactor())
+			.subtract(this.getOffset());
 	},
 
 	onAdd: L.Util.falseFn,
@@ -43,7 +59,7 @@ L.Canvas.Tile = L.Canvas.extend({
 	},
 
 	_onClick: function (e) {
-		var point = this._map.mouseEventToLayerPoint(e).subtract(this.getOffset()), layer, clickedLayer;
+		var point = this.getPointFromMouseEvent(e), layer, clickedLayer;
 
 		for (var id in this._layers) {
 			layer = this._layers[id];
@@ -60,7 +76,7 @@ L.Canvas.Tile = L.Canvas.extend({
 	_onMouseMove: function (e) {
 		if (!this._map || this._map.dragging.moving() || this._map._animatingZoom) { return; }
 
-		var point = this._map.mouseEventToLayerPoint(e).subtract(this.getOffset());
+		var point = this.getPointFromMouseEvent(e);
 		this._handleMouseHover(e, point);
 	},
 
