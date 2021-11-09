@@ -148,16 +148,18 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 		}.bind(this)).then(function(json){
 
 			// Normalize feature getters into actual instanced features
-			for (var layerName in json.layers) {
-				var feats = [];
+			if(Object.prototype.toString.call(json.layers) === '[object Object]') {
+				for (var layerName in json.layers) {
+					var feats = [];
 
-				for (var i=0; i<json.layers[layerName].length; i++) {
-					var feat = json.layers[layerName].feature(i);
-					feat.geometry = feat.loadGeometry();
-					feats.push(feat);
+					for (var i=0; i<json.layers[layerName].length; i++) {
+						var feat = json.layers[layerName].feature(i);
+						feat.geometry = feat.loadGeometry();
+						feats.push(feat);
+					}
+
+					json.layers[layerName].features = feats;
 				}
-
-				json.layers[layerName].features = feats;
 			}
 
 			return json;
