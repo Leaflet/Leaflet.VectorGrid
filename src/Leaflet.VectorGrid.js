@@ -188,7 +188,6 @@ L.VectorGrid = L.GridLayer.extend({
 		return this;
 	},
 
-
 	// 🍂method setFeatureStyle(id: Number): this
 	// Reverts the effects of a previous `setFeatureStyle` call.
 	resetFeatureStyle: function(id) {
