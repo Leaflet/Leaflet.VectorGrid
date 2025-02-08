@@ -269,7 +269,7 @@ L.VectorGrid = L.GridLayer.extend({
  *
  * Classes inheriting from `VectorGrid` **must** define the `_getVectorTilePromise` private method.
  *
- * 🍂method getVectorTilePromise(coords: Object): Promise
+ * 🍂method _getVectorTilePromise(coords: Object): Promise
  * Given a `coords` object in the form of `{x: Number, y: Number, z: Number}`,
  * this function must return a `Promise` for a vector tile.
  *
