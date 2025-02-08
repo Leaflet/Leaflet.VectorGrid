@@ -72,7 +72,7 @@ L.VectorGrid.Slicer = L.VectorGrid.extend({
 		}
 
 // 		this._worker = new Worker(window.URL.createObjectURL(new Blob([workerCode])));
-		this._worker = new Worker(workerCode);
+		this._worker = new Worker(options.workerUrl || workerCode);
 
 		// Send initial data to worker.
 		this._worker.postMessage(['slice', geojson, options]);
