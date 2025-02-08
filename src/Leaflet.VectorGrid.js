@@ -175,15 +175,14 @@ L.VectorGrid = L.GridLayer.extend({
 			var features = tile._features[id];
 			if (features) {
 				for (var i=0; i<features.length; i++) {
-                    var feature = features[i];
-
-                    var styleOptions = layerStyle;
-                    if (layerStyle[feature.layerName]) {
-                        styleOptions = layerStyle[feature.layerName];
-                    }
-
-                    this._updateStyles(feature.feature, tile, styleOptions);
-                }
+					var feature = features[i];
+					var styleOptions = layerStyle;
+					if (layerStyle[feature.layerName]) {
+						styleOptions = layerStyle[feature.layerName];
+					}
+					this._updateStyles(feature.feature, tile, styleOptions);
+					feature.feature.bringToFront();
+				}
 			}
 		}
 		return this;
