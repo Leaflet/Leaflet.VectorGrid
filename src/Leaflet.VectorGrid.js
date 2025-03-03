@@ -67,7 +67,7 @@ L.VectorGrid = L.GridLayer.extend({
 		var tileSize = this.getTileSize();
 		var renderer = this.options.rendererFactory(coords, tileSize, this.options);
 
-		var tileBounds = this._tileCoordsToBounds(coords);	
+		var tileBounds = this._tileCoordsToBounds(coords);
 
 		var vectorTilePromise = this._getVectorTilePromise(coords, tileBounds);
 
@@ -76,87 +76,85 @@ L.VectorGrid = L.GridLayer.extend({
 			renderer._features = {};
 		}
 
-		vectorTilePromise.then( function renderTile(vectorTile) {
+		vectorTilePromise.then(function renderTile(vectorTile) {
+			if (!vectorTile) {
+				this.fire('tileerror');
+				return;
+			}
+			for (var layerName in vectorTile.layers) {
+				this._dataLayerNames[layerName] = true;
+				var layer = vectorTile.layers[layerName];
 
-			if (vectorTile.layers && vectorTile.layers.length !== 0) {
+				var pxPerExtent = this.getTileSize().divideBy(layer.extent);
 
-				for (var layerName in vectorTile.layers) {
-					this._dataLayerNames[layerName] = true;
-					var layer = vectorTile.layers[layerName];
-	
-					var pxPerExtent = this.getTileSize().divideBy(layer.extent);
-	
-					var layerStyle = this.options.vectorTileLayerStyles[ layerName ] ||
-					L.Path.prototype.options;
-	
-					for (var i = 0; i < layer.features.length; i++) {
-						var feat = layer.features[i];
-						var id;
-	
-						if (this.options.filter instanceof Function &&
-							!this.options.filter(feat.properties, coords.z)) {
-							continue;
-						}
+				var layerStyle = this.options.vectorTileLayerStyles[ layerName ] ||
+				L.Path.prototype.options;
 
-						var styleOptions = layerStyle;
-						if (storeFeatures) {
-							id = this.options.getFeatureId(feat);
-							var styleOverride = this._overriddenStyles[id];
-							if (styleOverride) {
-								if (styleOverride[layerName]) {
-									styleOptions = styleOverride[layerName];
-								} else {
-									styleOptions = styleOverride;
-								}
+				for (var i = 0; i < layer.features.length; i++) {
+					var feat = layer.features[i];
+					var id;
+
+					if (this.options.filter instanceof Function &&
+						!this.options.filter(feat.properties, coords.z)) {
+						continue;
+					}
+
+					var styleOptions = layerStyle;
+					if (storeFeatures) {
+						id = this.options.getFeatureId(feat);
+						var styleOverride = this._overriddenStyles[id];
+						if (styleOverride) {
+							if (styleOverride[layerName]) {
+								styleOptions = styleOverride[layerName];
+							} else {
+								styleOptions = styleOverride;
 							}
-						}
-	
-						if (styleOptions instanceof Function) {
-							styleOptions = styleOptions(feat.properties, coords.z);
-						}
-	
-						if (!(styleOptions instanceof Array)) {
-							styleOptions = [styleOptions];
-						}
-	
-						if (!styleOptions.length) {
-							continue;
-						}
-	
-						var featureLayer = this._createLayer(feat, pxPerExtent);
-	
-						for (var j = 0; j < styleOptions.length; j++) {
-							var style = L.extend({}, L.Path.prototype.options, styleOptions[j]);
-							featureLayer.render(renderer, style);
-							renderer._addPath(featureLayer);
-						}
-	
-						if (this.options.interactive) {
-							featureLayer.makeInteractive();
-						}
-	
-						if (storeFeatures) {
-							// multiple features may share the same id, add them
-							// to an array of features
-							if (!renderer._features[id]) {
-								renderer._features[id] = [];
-							}
-
-							renderer._features[id].push({
-								layerName: layerName,
-								feature: featureLayer
-							});
 						}
 					}
-	
+
+					if (styleOptions instanceof Function) {
+						styleOptions = styleOptions(feat.properties, coords.z);
+					}
+
+					if (!(styleOptions instanceof Array)) {
+						styleOptions = [styleOptions];
+					}
+
+					if (!styleOptions.length) {
+						continue;
+					}
+
+					var featureLayer = this._createLayer(feat, pxPerExtent);
+
+					for (var j = 0; j < styleOptions.length; j++) {
+						var style = L.extend({}, L.Path.prototype.options, styleOptions[j]);
+						featureLayer.render(renderer, style);
+						renderer._addPath(featureLayer);
+					}
+
+					if (this.options.interactive) {
+						featureLayer.makeInteractive();
+					}
+
+					if (storeFeatures) {
+						// multiple features may share the same id, add them
+						// to an array of features
+						if (!renderer._features[id]) {
+							renderer._features[id] = [];
+						}
+
+						renderer._features[id].push({
+							layerName: layerName,
+							feature: featureLayer
+						});
+					}
 				}
-	
 			}
-		
+
 			if (this._map != null) {
 				renderer.addTo(this._map);
 			}
-	
+
 			L.Util.requestAnimFrame(done.bind(coords, null, null));
 
 		}.bind(this));
