@@ -96,7 +96,7 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 		var currentZoom = zoom === coords.z;
 
 		var tileBounds = this._tileCoordsToBounds(coords);
-		var currentBounds = this._map.getBounds().overlaps(tileBounds); 
+		var currentBounds = this._map.getBounds().overlaps(tileBounds);
 
 		return currentZoom && currentBounds;
 
@@ -127,13 +127,14 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 		return fetch(tileUrl, this.options.fetchOptions).then(function(response){
 
 			if (!response.ok || !this._isCurrentTile(coords)) {
-				return {layers:[]};
-			} 
+				throw new Error('Failed to fetch tile: HTTP response ' + response.status +
+					' ' + response.statusText);
+			}
 
-			return response.blob().then( function (blob) {
+			return response.blob().then(function (blob) {
 
 				var reader = new FileReader();
-				return new Promise(function(resolve){
+				return new Promise(function(resolve, reject){
 					reader.addEventListener("loadend", function() {
 						// reader.result contains the contents of blob as a typed array
 						// blob.type === 'application/x-protobuf'
@@ -141,6 +142,8 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 						return resolve(new VectorTile( pbf ));
 
 					});
+					reader.addEventListener("error", reject);
+					reader.addEventListener("abort", reject);
 					reader.readAsArrayBuffer(blob);
 				});
 			});
@@ -161,6 +164,8 @@ L.VectorGrid.Protobuf = L.VectorGrid.extend({
 			}
 
 			return json;
+		}).catch(function (err) {
+			console.log(err);
 		});
 	}
 });
